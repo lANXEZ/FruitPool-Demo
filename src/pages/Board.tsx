@@ -5,9 +5,8 @@ import { pick } from '../i18n';
 import { FRUITS, PURPOSES, REGIONS, ZONES } from '../catalog';
 import { addDays, fmtDate, today } from '../lib/dates';
 import { GradeTag } from '../components/PoolCard';
+import FruitPicker from '../components/FruitPicker';
 import type { FruitId, Grade, Purpose, ZoneId } from '../types';
-
-const fruitIds = Object.keys(FRUITS) as FruitId[];
 
 export default function Board() {
   const { state, lang, t, num, me, userById } = useApp();
@@ -17,6 +16,13 @@ export default function Board() {
   const match = (f: FruitId) => fruit === 'all' || f === fruit;
   const demands = state.demands.filter((d) => d.status !== 'done' && match(d.fruit)).sort((a, b) => a.neededBy.localeCompare(b.neededBy));
   const supplies = state.supplies.filter((s) => s.qtyKg > 0 && match(s.fruit));
+  // One chip per fruit that has posts (the full list is too long for a chip row).
+  const onBoard = new Set<FruitId>([
+    ...state.demands.filter((d) => d.status !== 'done').map((d) => d.fruit),
+    ...state.supplies.filter((s) => s.qtyKg > 0).map((s) => s.fruit),
+  ]);
+  if (fruit !== 'all') onBoard.add(fruit);
+  const chipFruits = [...onBoard].sort((a, b) => pick(FRUITS[a], lang).localeCompare(pick(FRUITS[b], lang), lang));
   const statusBadge = (s: string) =>
     s === 'open' ? <span className="badge wait">{t('st_open')}</span> : <span className="badge ok">{t('st_in_deal')}</span>;
 
@@ -29,7 +35,7 @@ export default function Board() {
       <div className="spread" style={{ marginBottom: 16 }}>
         <div className="row" role="group">
           <button className="chip" aria-pressed={fruit === 'all'} onClick={() => setFruit('all')}>{t('all_fruit')}</button>
-          {fruitIds.map((f) => (
+          {chipFruits.map((f) => (
             <button key={f} className="chip" aria-pressed={fruit === f} onClick={() => setFruit(f)}>{pick(FRUITS[f], lang)}</button>
           ))}
         </div>
@@ -113,9 +119,8 @@ function DemandForm({ onDone }: { onDone: () => void }) {
       <h2 className="full">{t('post_demand')}</h2>
       <div className="field">
         <label htmlFor="df">{t('f_fruit')}</label>
-        <select id="df" value={f.fruit} onChange={(e) => set('fruit', e.target.value as FruitId)}>
-          {fruitIds.map((x) => <option key={x} value={x}>{pick(FRUITS[x], lang)}</option>)}
-        </select>
+        <FruitPicker id="df" value={f.fruit} onChange={(x) => set('fruit', x)} />
+        <span className="hint">{t('f_fruit_hint')}</span>
       </div>
       <div className="field">
         <label htmlFor="dq">{t('f_qty')}</label>
@@ -177,9 +182,8 @@ function SupplyForm({ onDone }: { onDone: () => void }) {
       <h2 className="full">{t('post_supply')}</h2>
       <div className="field">
         <label htmlFor="sf">{t('f_fruit')}</label>
-        <select id="sf" value={f.fruit} onChange={(e) => set('fruit', e.target.value as FruitId)}>
-          {fruitIds.map((x) => <option key={x} value={x}>{pick(FRUITS[x], lang)}</option>)}
-        </select>
+        <FruitPicker id="sf" value={f.fruit} onChange={(x) => set('fruit', x)} />
+        <span className="hint">{t('f_fruit_hint')}</span>
       </div>
       <div className="field">
         <label htmlFor="sv">{t('f_variety')}</label>

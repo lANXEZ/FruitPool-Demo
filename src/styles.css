@@ -146,6 +146,20 @@ main { max-width: 1160px; margin: 0 auto; padding: 28px 16px 64px; }
 .tier-row { display: flex; gap: 8px; align-items: end; margin-top: 6px; }
 .tier-row .field { flex: 1; }
 
+/* searchable fruit picker */
+.combo { position: relative; }
+.combo input { width: 100%; }
+.combo-list {
+  position: absolute; z-index: 30; top: calc(100% + 2px); left: 0; right: 0; min-width: 220px; max-height: 260px; overflow-y: auto;
+  margin: 0; padding: 4px 0; list-style: none; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-sm); box-shadow: 0 8px 20px rgba(20, 40, 30, 0.14);
+}
+.combo-list li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; cursor: pointer; }
+.combo-list li[aria-selected='true'] { background: var(--primary-soft); }
+.combo-list li.current { font-weight: 600; }
+.combo-list .alt { color: var(--muted); font-size: 0.8rem; }
+.combo-list .combo-empty { color: var(--muted); cursor: default; }
+
 /* pools */
 .pool { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 20px; overflow: hidden; }
 .pool.is-viable { border-left: 4px solid var(--ok); }

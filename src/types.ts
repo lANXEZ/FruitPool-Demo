@@ -1,10 +1,12 @@
+import type { FruitId } from './catalog';
+
+export type { FruitId };
 export type Lang = 'th' | 'en';
 export type L = { th: string; en: string };
 
 export type Role = 'buyer' | 'farmer';
 export type Purpose = 'fresh' | 'juice' | 'smoothie' | 'processing';
 export type Grade = 'A' | 'B' | 'C';
-export type FruitId = 'mango' | 'pineapple' | 'guava' | 'banana' | 'passionfruit';
 export type ZoneId = 'ari' | 'sukhumvit' | 'bangna' | 'nonthaburi';
 export type RegionId = 'central' | 'east' | 'north' | 'northeast';
 
