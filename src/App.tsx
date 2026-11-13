@@ -1,5 +1,5 @@
 import { NavLink, Route, Routes, Navigate } from 'react-router-dom';
-import { Citrus, RotateCcw } from 'lucide-react';
+import { Citrus, RotateCcw, UserPlus } from 'lucide-react';
 import { useApp } from './store';
 import { pick } from './i18n';
 import Home from './pages/Home';
@@ -7,6 +7,7 @@ import Board from './pages/Board';
 import Pools from './pages/Pools';
 import Deals from './pages/Deals';
 import Insights from './pages/Insights';
+import Join from './pages/Join';
 
 export default function App() {
   const { state, lang, t, setLang, setUser, reset } = useApp();
@@ -28,6 +29,9 @@ export default function App() {
             <NavLink to="/insights">{t('nav_insights')}</NavLink>
           </nav>
           <div className="topbar-tools">
+            <NavLink to="/join" className="ghost">
+              <span className="row"><UserPlus size={14} aria-hidden /> {t('join')}</span>
+            </NavLink>
             <label className="row small">
               <span>{t('view_as')}</span>
               <select value={state.currentUserId} onChange={(e) => setUser(e.target.value)}>
@@ -57,6 +61,7 @@ export default function App() {
           <Route path="/pools" element={<Pools />} />
           <Route path="/deals" element={<Deals />} />
           <Route path="/insights" element={<Insights />} />
+          <Route path="/join" element={<Join />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

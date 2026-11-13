@@ -110,7 +110,20 @@ function useAppState() {
   const actions = {
     setLang: setLangState,
     setUser: (id: string) => mutate((s) => void (s.currentUserId = id)),
-    reset: () => setState({ ...seedState(), currentUserId: state.currentUserId }),
+    reset: () => {
+      const seed = seedState();
+      // A joined account is not in the seed, so fall back to the seed's default viewer.
+      const keep = seed.users.some((u) => u.id === state.currentUserId);
+      setState(keep ? { ...seed, currentUserId: state.currentUserId } : seed);
+    },
+
+    /** Demo sign-up: no password, the account lives in this browser and becomes the current viewer. */
+    addUser: (u: Omit<User, 'id'>) =>
+      mutate((s) => {
+        const id = uid(u.role === 'buyer' ? 'b' : 'f');
+        s.users.push({ ...u, id });
+        s.currentUserId = id;
+      }),
 
     addDemand: (d: Omit<Demand, 'id' | 'status' | 'buyerId'>) =>
       mutate((s) => void s.demands.push({ ...d, id: uid('d'), buyerId: s.currentUserId, status: 'open' })),

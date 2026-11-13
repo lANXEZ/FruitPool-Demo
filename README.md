@@ -28,6 +28,7 @@ npm run build    # type-check + production build into dist/
 4. **Deal room**: shops confirm, the farmer ships, shops confirm receipt or report a problem. The demo shortcut button plays the other parties' steps.
 5. **Insights**: open requests and completed deals kept separate, labelled as FRUITPOOL-internal trends.
 6. **Market board**: post a demand (as a shop) or a listing with your own price tiers (as a farmer). New posts join pools immediately.
+7. **Join** (header): create your own shop or farmer account (name, business type, delivery zone or farm region). No password; it becomes the current viewer and goes straight to the Market board. **Reset demo** removes it.
 
 ## Where things live
 
@@ -37,7 +38,7 @@ npm run build    # type-check + production build into dist/
 | `src/seed.ts` | Demo users, demands, listings, past deals (hypothetical figures). |
 | `src/store.tsx` | App state, localStorage persistence, deal status flow. |
 | `src/i18n.ts` | Thai / English strings. |
-| `src/pages/*` | Overview, Market board, Pools, Deal room, Insights. |
+| `src/pages/*` | Overview, Market board, Pools, Deal room, Insights, Join. |
 
 ## Rules in this demo
 
