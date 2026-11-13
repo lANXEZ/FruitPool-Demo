@@ -6,6 +6,7 @@ import { FRUITS, PURPOSES, REGIONS, ZONES } from '../catalog';
 import { addDays, fmtDate, today } from '../lib/dates';
 import { GradeTag } from '../components/PoolCard';
 import FruitPicker from '../components/FruitPicker';
+import DateField from '../components/DateField';
 import type { FruitId, Grade, Purpose, ZoneId } from '../types';
 
 export default function Board() {
@@ -140,7 +141,7 @@ function DemandForm({ onDone }: { onDone: () => void }) {
       </div>
       <div className="field">
         <label htmlFor="dn">{t('f_needed')}</label>
-        <input id="dn" type="date" required min={today()} value={f.neededBy} onChange={(e) => set('neededBy', e.target.value)} />
+        <DateField id="dn" required min={today()} value={f.neededBy} onChange={(v) => set('neededBy', v)} />
       </div>
       <div className="field">
         <label htmlFor="dm">{t('f_maxcost')}</label>
@@ -201,11 +202,11 @@ function SupplyForm({ onDone }: { onDone: () => void }) {
       </div>
       <div className="field">
         <label htmlFor="sa">{t('f_from')}</label>
-        <input id="sa" type="date" required value={f.availableFrom} onChange={(e) => set('availableFrom', e.target.value)} />
+        <DateField id="sa" required value={f.availableFrom} onChange={(v) => set('availableFrom', v)} />
       </div>
       <div className="field">
         <label htmlFor="sb">{t('f_to')}</label>
-        <input id="sb" type="date" required min={f.availableFrom} value={f.availableTo} onChange={(e) => set('availableTo', e.target.value)} />
+        <DateField id="sb" required min={f.availableFrom} value={f.availableTo} onChange={(v) => set('availableTo', v)} />
       </div>
       <fieldset className="full" style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="small" style={{ fontWeight: 600 }}>{t('f_tiers')}</legend>
