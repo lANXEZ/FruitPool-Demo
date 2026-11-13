@@ -167,6 +167,18 @@ const en = {
   kg: 'kg',
   per_kg: '฿/kg',
   baht: '฿',
+
+  join: 'Join',
+  join_title: 'Join FRUITPOOL',
+  join_lede: 'Create a demo account as a shop or a farmer. No password needed: the account lives in this browser only, and Reset demo removes it.',
+  join_as: 'I am a',
+  join_buyer: 'Shop (buyer)',
+  join_farmer: 'Farmer (seller)',
+  f_name: 'Business name',
+  f_kind: 'Business type',
+  f_zone_hint: 'Orders are delivered here and pooled with shops nearby.',
+  f_region_hint: 'Sets your shipping cost into Bangkok.',
+  join_submit: 'Create account',
 };
 
 export type Key = keyof typeof en;
@@ -338,6 +350,18 @@ const th: Record<Key, string> = {
   kg: 'กก.',
   per_kg: 'บาท/กก.',
   baht: '฿',
+
+  join: 'สมัครใช้งาน',
+  join_title: 'สมัครใช้งาน FRUITPOOL',
+  join_lede: 'สร้างบัญชีทดลองในฐานะร้านค้าหรือเกษตรกร ไม่ต้องใช้รหัสผ่าน บัญชีจะอยู่ในเบราว์เซอร์นี้เท่านั้น และจะถูกลบเมื่อกดรีเซ็ตเดโม',
+  join_as: 'ฉันเป็น',
+  join_buyer: 'ร้านค้า (ผู้ซื้อ)',
+  join_farmer: 'เกษตรกร (ผู้ขาย)',
+  f_name: 'ชื่อกิจการ',
+  f_kind: 'ประเภทกิจการ',
+  f_zone_hint: 'สินค้าจะส่งมาที่นี่ และรวมกลุ่มกับร้านใกล้เคียง',
+  f_region_hint: 'ใช้คำนวณค่าขนส่งเข้ากรุงเทพฯ',
+  join_submit: 'สร้างบัญชี',
 };
 
 const DICT: Record<Lang, Record<Key, string>> = { en, th };

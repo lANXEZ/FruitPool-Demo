@@ -36,3 +36,18 @@ export const PURPOSE_NEEDS: Record<Purpose, L> = {
   smoothie: { th: 'เนื้อและความสุกเหมาะกับการปั่น', en: 'Texture and ripeness for blending' },
   processing: { th: 'ตรงสเปกวัตถุดิบโรงงาน', en: 'Matches the factory spec' },
 };
+
+/** Business types offered when someone joins. */
+export const BUYER_KINDS: L[] = [
+  { th: 'ร้านน้ำผลไม้', en: 'Juice bar' },
+  { th: 'ร้านสมูทตี้', en: 'Smoothie shop' },
+  { th: 'คาเฟ่', en: 'Café' },
+  { th: 'ร้านผลไม้สด', en: 'Fresh fruit stall' },
+  { th: 'โรงงานแปรรูป', en: 'Processor' },
+];
+
+export const FARMER_KINDS: L[] = [
+  { th: 'สวนผลไม้', en: 'Orchard' },
+  { th: 'สหกรณ์การเกษตร', en: 'Farmer co-op' },
+  { th: 'กลุ่มเกษตรกร', en: 'Farmer group' },
+];

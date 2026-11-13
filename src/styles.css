@@ -66,6 +66,8 @@ button, input, select { font: inherit; color: inherit; }
   border-radius: var(--r-sm); padding: 5px 8px; max-width: 240px;
 }
 .topbar select option, .topbar select optgroup { color: var(--ink); }
+.topbar a.ghost { text-decoration: none; }
+.topbar a.ghost.active { background: rgba(255, 255, 255, 0.22); }
 .langswitch { display: inline-flex; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: var(--r-sm); overflow: hidden; }
 .langswitch button { background: transparent; border: 0; color: #cfe3d7; padding: 5px 9px; cursor: pointer; }
 .langswitch button[aria-pressed='true'] { background: #fff; color: var(--primary); font-weight: 600; }
