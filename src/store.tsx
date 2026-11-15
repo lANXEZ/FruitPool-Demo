@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { AppState, Deal, Demand, Lang, Supply, User } from './types';
+import type { AppState, Charge, Deal, Demand, Lang, Supply, User } from './types';
 import { STATE_VERSION, seedState } from './seed';
 import { addDays, signedDays, today } from './lib/dates';
 import { round2, type Quote } from './lib/pool';
@@ -21,8 +21,19 @@ function shiftDates(s: AppState): AppState {
     ...s,
     anchor: today(),
     demands: s.demands.map((d) => ({ ...d, neededBy: addDays(d.neededBy, delta) })),
-    supplies: s.supplies.map((x) => ({ ...x, availableFrom: addDays(x.availableFrom, delta), availableTo: addDays(x.availableTo, delta) })),
+    supplies: s.supplies.map((x) => ({
+      ...x,
+      availableFrom: addDays(x.availableFrom, delta),
+      availableTo: addDays(x.availableTo, delta),
+      featuredUntil: x.featuredUntil && addDays(x.featuredUntil, delta),
+      verify: x.verify && {
+        ...x.verify,
+        requestedAt: shiftIso(x.verify.requestedAt),
+        verifiedAt: x.verify.verifiedAt && shiftIso(x.verify.verifiedAt),
+      },
+    })),
     deals: s.deals.map((d) => ({ ...d, deliveryDate: addDays(d.deliveryDate, delta), events: d.events.map((e) => ({ ...e, at: shiftIso(e.at) })) })),
+    charges: s.charges.map((c) => ({ ...c, at: shiftIso(c.at) })),
   };
 }
 
@@ -53,6 +64,26 @@ function loadLang(): Lang {
 
 const uid = (p: string) => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 const now = () => new Date().toISOString();
+
+/** Charge the farmer for an add-on and record it in FRUITPOOL's income. */
+function charge(s: AppState, sup: Supply, kind: Charge['kind']) {
+  const amount = kind === 'verify' ? s.settings.verifyFee : s.settings.featureFee;
+  s.charges.push({ id: uid('c'), at: now(), farmerId: sup.farmerId, supplyId: sup.id, kind, amount });
+}
+
+/** Ask for grade verification. Ignored if the listing already has one requested or done. */
+function startVerify(s: AppState, sup: Supply) {
+  if (sup.verify) return;
+  sup.verify = { status: 'pending', requestedAt: now() };
+  charge(s, sup, 'verify');
+}
+
+/** Promote a listing. A renewal extends from the current end date, not from today. */
+function startFeature(s: AppState, sup: Supply) {
+  const live = sup.featuredUntil && sup.featuredUntil >= today();
+  sup.featuredUntil = addDays(live ? sup.featuredUntil! : addDays(today(), -1), s.settings.featureDays);
+  charge(s, sup, 'feature');
+}
 
 function finishIfAllReceived(deal: Deal, demands: Demand[]) {
   if (deal.lines.every((l) => l.received)) {
@@ -138,15 +169,36 @@ function useAppState() {
       return id;
     },
 
-    /** Returns the new listing's id. */
-    addSupply: (x: Omit<Supply, 'id' | 'farmerId' | 'region'>) => {
+    /** Returns the new listing's id. Optional paid add-ons are charged with it. */
+    addSupply: (x: Omit<Supply, 'id' | 'farmerId' | 'region'>, addons: { verify?: boolean; feature?: boolean } = {}) => {
       const id = uid('s');
       mutate((s) => {
         const u = s.users.find((y) => y.id === s.currentUserId)!;
-        s.supplies.push({ ...x, id, farmerId: u.id, region: u.region ?? 'central' });
+        const sup: Supply = { ...x, id, farmerId: u.id, region: u.region ?? 'central' };
+        s.supplies.push(sup);
+        if (addons.verify) startVerify(s, sup);
+        if (addons.feature) startFeature(s, sup);
       });
       return id;
     },
+
+    /** Paid add-ons on an existing listing. Only its owner can buy them. */
+    requestVerify: (supplyId: string) =>
+      mutate((s) => {
+        const sup = s.supplies.find((x) => x.id === supplyId);
+        if (sup && sup.farmerId === s.currentUserId) startVerify(s, sup);
+      }),
+    featureListing: (supplyId: string) =>
+      mutate((s) => {
+        const sup = s.supplies.find((x) => x.id === supplyId);
+        if (sup && sup.farmerId === s.currentUserId) startFeature(s, sup);
+      }),
+    /** Demo shortcut: the inspector visits and confirms the grade. */
+    approveVerify: (supplyId: string) =>
+      mutate((s) => {
+        const sup = s.supplies.find((x) => x.id === supplyId);
+        if (sup?.verify?.status === 'pending') sup.verify = { ...sup.verify, status: 'verified', verifiedAt: now() };
+      }),
 
     /** Farmer locks the quoted terms and offers them to the shops in the pool. */
     sendOffer: (q: Quote, pool: { zone: Deal['zone']; deliveryDate: string }) => {

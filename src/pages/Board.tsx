@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, X } from 'lucide-react';
+import { FastForward, Megaphone, Plus, ShieldCheck, X } from 'lucide-react';
 import { useApp } from '../store';
 import { pick } from '../i18n';
 import { FRUITS, PURPOSES, REGIONS, ZONES } from '../catalog';
@@ -8,7 +8,9 @@ import { addDays, fmtDate, today } from '../lib/dates';
 import { GradeTag } from '../components/PoolCard';
 import FruitPicker from '../components/FruitPicker';
 import DateField from '../components/DateField';
-import type { FruitId, Grade, Purpose, ZoneId } from '../types';
+import ListingTags from '../components/ListingTags';
+import { isFeatured } from '../lib/revenue';
+import type { FruitId, Grade, Purpose, Supply, ZoneId } from '../types';
 
 export default function Board() {
   const { state, lang, t, num, me, userById } = useApp();
@@ -21,7 +23,10 @@ export default function Board() {
 
   const match = (f: FruitId) => fruit === 'all' || f === fruit;
   const demands = state.demands.filter((d) => d.status !== 'done' && match(d.fruit)).sort((a, b) => a.neededBy.localeCompare(b.neededBy));
-  const supplies = state.supplies.filter((s) => s.qtyKg > 0 && match(s.fruit));
+  // Promoted listings first: that is what a farmer pays for. It changes placement only, never matching.
+  const supplies = state.supplies
+    .filter((s) => s.qtyKg > 0 && match(s.fruit))
+    .sort((a, b) => Number(isFeatured(b)) - Number(isFeatured(a)));
   // One chip per fruit that has posts (the full list is too long for a chip row).
   const onBoard = new Set<FruitId>([
     ...state.demands.filter((d) => d.status !== 'done').map((d) => d.fruit),
@@ -82,15 +87,16 @@ export default function Board() {
           <h2>{t('board_supply')}</h2>
           {supplies.length === 0 && <p className="empty">{t('empty_board')}</p>}
           {supplies.map((s) => (
-            <div key={s.id} className={`listing ${s.farmerId === me.id ? 'mine' : ''}`}>
+            <div key={s.id} className={`listing ${s.farmerId === me.id ? 'mine' : ''} ${isFeatured(s) ? 'featured' : ''}`}>
               <div>
                 <span className="who">{pick(userById(s.farmerId).name, lang)}</span>{' '}
                 <span className="muted small">{t('ships_from')} {pick(REGIONS[s.region], lang)}</span>
               </div>
               <div><GradeTag g={s.grade} /></div>
               <div style={{ gridColumn: '1 / -1' }}>
-                <strong>{pick(FRUITS[s.fruit], lang)}</strong> {pick(s.variety, lang)} · {t('available')} <span className="num">{num(s.qtyKg)}</span> {t('kg')}
+                <strong>{pick(FRUITS[s.fruit], lang)}</strong> {pick(s.variety, lang) !== pick(FRUITS[s.fruit], lang) && pick(s.variety, lang)} · {t('available')} <span className="num">{num(s.qtyKg)}</span> {t('kg')}
               </div>
+              <div className="tags-row"><ListingTags supply={s} /></div>
               <div className="tiers-inline">
                 {s.tiers.map((tr) => (
                   <span key={tr.minKg}>≥{num(tr.minKg)} {t('kg')}: <b className="num">{num(tr.price)}</b> {t('per_kg')}</span>
@@ -100,6 +106,7 @@ export default function Board() {
                 <span>{t('min_order')} {num(s.tiers[0].minKg)} {t('kg')}</span>
                 <span>{fmtDate(s.availableFrom, lang)} – {fmtDate(s.availableTo, lang)}</span>
               </div>
+              {s.farmerId === me.id && <ListingAddons supply={s} />}
             </div>
           ))}
         </section>
@@ -168,13 +175,16 @@ function DemandForm({ onDone }: { onDone: () => void }) {
 }
 
 function SupplyForm({ onDone }: { onDone: () => void }) {
-  const { lang, t, me, addSupply } = useApp();
+  const { state, lang, t, num, me, addSupply } = useApp();
   const navigate = useNavigate();
   const [f, setF] = useState({
     fruit: 'mango' as FruitId, variety: '', grade: 'A' as Grade, qtyKg: 200,
     availableFrom: today(), availableTo: addDays(today(), 14),
   });
   const [tiers, setTiers] = useState([{ minKg: 50, price: 50 }, { minKg: 150, price: 46 }]);
+  const [addons, setAddons] = useState({ verify: false, feature: false });
+  const { settings } = state;
+  const addonTotal = (addons.verify ? settings.verifyFee : 0) + (addons.feature ? settings.featureFee : 0);
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF({ ...f, [k]: v });
   const setTier = (i: number, k: 'minKg' | 'price', v: number) => setTiers(tiers.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
   const submit = (e: FormEvent) => {
@@ -182,7 +192,7 @@ function SupplyForm({ onDone }: { onDone: () => void }) {
     const clean = tiers.filter((x) => x.minKg > 0 && x.price > 0).sort((a, b) => a.minKg - b.minKg);
     if (clean.length === 0) return;
     const v = f.variety.trim() || pick(FRUITS[f.fruit], lang);
-    const id = addSupply({ ...f, variety: { th: v, en: v }, tiers: clean });
+    const id = addSupply({ ...f, variety: { th: v, en: v }, tiers: clean }, addons);
     navigate('/me', { state: { flash: { kind: 'supply', id, userId: me.id } } });
   };
   return (
@@ -241,10 +251,87 @@ function SupplyForm({ onDone }: { onDone: () => void }) {
           </button>
         )}
       </fieldset>
+      <fieldset className="full addons">
+        <legend>{t('addons_title')}</legend>
+        <p className="small muted">{t('addons_lede')}</p>
+        <label className="addon">
+          <input type="checkbox" checked={addons.verify} onChange={(e) => setAddons({ ...addons, verify: e.target.checked })} />
+          <ShieldCheck size={20} aria-hidden className="addon-icon" />
+          <span>
+            <strong>{t('addon_verify')}</strong> <span className="num">{num(settings.verifyFee)}</span> {t('baht')}
+            <span className="small muted">{t('addon_verify_d')}</span>
+          </span>
+        </label>
+        <label className="addon">
+          <input type="checkbox" checked={addons.feature} onChange={(e) => setAddons({ ...addons, feature: e.target.checked })} />
+          <Megaphone size={20} aria-hidden className="addon-icon" />
+          <span>
+            <strong>{t('addon_feature', { n: settings.featureDays })}</strong> <span className="num">{num(settings.featureFee)}</span> {t('baht')}
+            <span className="small muted">{t('addon_feature_d', { n: settings.featureDays })}</span>
+          </span>
+        </label>
+        {addonTotal > 0 && (
+          <p className="addon-total">{t('addons_total', { n: num(addonTotal) })} <span className="small muted">{t('demo_no_charge')}</span></p>
+        )}
+      </fieldset>
       <div className="full row">
         <button className="btn" type="submit">{t('submit')}</button>
         <button className="btn secondary" type="button" onClick={onDone}>{t('cancel')}</button>
       </div>
     </form>
+  );
+}
+
+/**
+ * The owner's paid add-ons on one of their listings: ask for grade verification, promote it.
+ * Each purchase asks for confirmation first (inline, not a browser dialog).
+ */
+function ListingAddons({ supply }: { supply: Supply }) {
+  const { state, lang, t, num, requestVerify, featureListing, approveVerify } = useApp();
+  const { verifyFee, featureFee, featureDays } = state.settings;
+  const [ask, setAsk] = useState<'verify' | 'feature' | null>(null);
+  const featured = isFeatured(supply);
+
+  const buy = () => {
+    if (ask === 'verify') requestVerify(supply.id);
+    if (ask === 'feature') featureListing(supply.id);
+    setAsk(null);
+  };
+
+  return (
+    <div className="addon-bar">
+      {!supply.verify && (
+        <button className="btn secondary" onClick={() => setAsk('verify')}>
+          <ShieldCheck size={16} aria-hidden /> {t('buy_verify', { n: num(verifyFee) })}
+        </button>
+      )}
+      {supply.verify?.status === 'pending' && (
+        <>
+          <span className="small">{t('verify_pending')}</span>
+          <button className="btn secondary" onClick={() => approveVerify(supply.id)}>
+            <FastForward size={16} aria-hidden /> {t('demo_inspect')}
+          </button>
+        </>
+      )}
+      {featured && <span className="small">{t('featured_until', { d: fmtDate(supply.featuredUntil!, lang) })}</span>}
+      <button className="btn secondary" onClick={() => setAsk('feature')}>
+        <Megaphone size={16} aria-hidden /> {t(featured ? 'buy_feature_more' : 'buy_feature', { n: num(featureFee), d: featureDays })}
+      </button>
+
+      {ask && (
+        <div className="confirm-box" role="group" aria-label={t('confirm_pay')}>
+          <p>
+            <strong>{t(ask === 'verify' ? 'addon_verify' : 'addon_feature', { n: featureDays })}: <span className="num">{num(ask === 'verify' ? verifyFee : featureFee)}</span> {t('baht')}</strong>
+            <br />
+            {t(ask === 'verify' ? 'addon_verify_d' : 'addon_feature_d', { n: featureDays })}
+          </p>
+          <p className="small muted">{t('demo_no_charge')}</p>
+          <div className="row">
+            <button className="btn mango" onClick={buy}>{t('confirm_pay')}</button>
+            <button className="btn secondary" onClick={() => setAsk(null)}>{t('cancel')}</button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

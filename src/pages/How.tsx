@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Coins } from 'lucide-react';
 import { useApp } from '../store';
 import { usePools } from '../lib/usePools';
 import PoolCard from '../components/PoolCard';
@@ -54,6 +54,12 @@ export default function How() {
           <PoolCard pool={example.pool} quotes={example.quotes} defaultOpen />
         </section>
       )}
+
+      <section className="example">
+        <h2>{t('how_money')}</h2>
+        <p className="muted" style={{ margin: '6px 0 14px', maxWidth: 760 }}>{t('how_money_d')}</p>
+        <Link className="btn secondary" to="/revenue"><Coins size={16} aria-hidden /> {t('rev_title')}</Link>
+      </section>
     </>
   );
 }

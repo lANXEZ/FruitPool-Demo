@@ -7,6 +7,7 @@ import { FRUITS, PURPOSES, REGIONS, ZONES } from '../catalog';
 import { fmtDate } from '../lib/dates';
 import { round2, type Pool, type Quote } from '../lib/pool';
 import Term from './Term';
+import ListingTags from './ListingTags';
 
 export function GradeTag({ g }: { g: string }) {
   return <span className="grade">{g}</span>;
@@ -144,7 +145,7 @@ export default function PoolCard({ pool, quotes, focus, defaultOpen }: { pool: P
                 <div className="small muted">{t('best_match')}</div>
                 <h3>{farmerName}</h3>
                 <div className="row small muted">
-                  {pick(best.supply.variety, lang)} <GradeTag g={best.supply.grade} /> · {t('ships_from')} {pick(REGIONS[best.supply.region], lang)}
+                  {pick(best.supply.variety, lang)} <GradeTag g={best.supply.grade} /> <ListingTags supply={best.supply} promoted={false} /> · {t('ships_from')} {pick(REGIONS[best.supply.region], lang)}
                 </div>
 
                 {viable ? (
@@ -175,7 +176,7 @@ export default function PoolCard({ pool, quotes, focus, defaultOpen }: { pool: P
                     {quotes.slice(1).map((q) => (
                       <div className="other-row" key={q.supply.id}>
                         <span>
-                          {pick(userById(q.supply.farmerId).name, lang)} <GradeTag g={q.supply.grade} />{' '}
+                          {pick(userById(q.supply.farmerId).name, lang)} <GradeTag g={q.supply.grade} /> <ListingTags supply={q.supply} promoted={false} />{' '}
                           <span className="muted">{pick(REGIONS[q.supply.region], lang)}</span>
                         </span>
                         <span>
