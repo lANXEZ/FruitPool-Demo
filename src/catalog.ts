@@ -102,8 +102,10 @@ export const ZONES: Record<ZoneId, L> = {
 export const REGIONS: Record<RegionId, L> = {
   central: { th: 'ภาคกลาง', en: 'Central' },
   east: { th: 'ภาคตะวันออก', en: 'East' },
+  west: { th: 'ภาคตะวันตก', en: 'West' },
   north: { th: 'ภาคเหนือ', en: 'North' },
   northeast: { th: 'ภาคอีสาน', en: 'Northeast' },
+  south: { th: 'ภาคใต้', en: 'South' },
 };
 
 export const PURPOSES: Record<Purpose, L> = {

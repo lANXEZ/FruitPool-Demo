@@ -8,7 +8,8 @@ export type Role = 'buyer' | 'farmer';
 export type Purpose = 'fresh' | 'juice' | 'smoothie' | 'processing';
 export type Grade = 'A' | 'B' | 'C';
 export type ZoneId = 'ari' | 'sukhumvit' | 'bangna' | 'nonthaburi';
-export type RegionId = 'central' | 'east' | 'north' | 'northeast';
+/** Thailand's six standard regions. */
+export type RegionId = 'central' | 'east' | 'west' | 'north' | 'northeast' | 'south';
 
 export interface User {
   id: string;

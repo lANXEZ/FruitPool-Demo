@@ -85,8 +85,10 @@ export function seedState(): AppState {
       shipping: {
         central: { trip: 360, perKg: 2 },
         east: { trip: 600, perKg: 2.5 },
+        west: { trip: 450, perKg: 2 }, // Ratchaburi, Kanchanaburi: close to Bangkok
         north: { trip: 1200, perKg: 3 },
         northeast: { trip: 1000, perKg: 3 },
+        south: { trip: 1400, perKg: 3.5 }, // Chumphon to Songkhla: the longest haul
       },
     },
   };
