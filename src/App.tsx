@@ -1,7 +1,7 @@
 import { NavLink, Route, Routes, Navigate } from 'react-router-dom';
-import { Citrus, Sprout, Store } from 'lucide-react';
+import { BarChart3, Citrus, CircleHelp, Handshake, ListChecks, Sprout, Store, Users, type LucideIcon } from 'lucide-react';
 import { useApp } from './store';
-import { pick } from './i18n';
+import { pick, type Key } from './i18n';
 import { needsYou, useTracks } from './lib/journey';
 import Start from './pages/Start';
 import Me from './pages/Me';
@@ -13,9 +13,38 @@ import Insights from './pages/Insights';
 import Join from './pages/Join';
 import DemoPanel from './components/DemoPanel';
 
+interface NavItem {
+  to: string;
+  Icon: LucideIcon;
+  label: Key; // full label (desktop)
+  short: Key; // bottom tab bar on phones
+  phone?: false; // left out of the phone tab bar
+  iconOnly?: true; // desktop shows just the icon (label stays for screen readers and as a tooltip)
+}
+
+/** Menus named after what each role is doing. Shops don't get Insights: it is the farmers' market view. */
+const NAV: Record<'buyer' | 'farmer', NavItem[]> = {
+  buyer: [
+    { to: '/me', Icon: ListChecks, label: 'nav_me_b', short: 'tab_me' },
+    { to: '/board', Icon: Store, label: 'nav_board', short: 'tab_board' },
+    { to: '/pools', Icon: Users, label: 'nav_pools_b', short: 'tab_pools_b' },
+    { to: '/deals', Icon: Handshake, label: 'nav_deals', short: 'tab_deals' },
+    { to: '/how', Icon: CircleHelp, label: 'nav_how', short: 'tab_how', iconOnly: true },
+  ],
+  farmer: [
+    { to: '/me', Icon: ListChecks, label: 'nav_me_f', short: 'tab_me' },
+    { to: '/board', Icon: Store, label: 'nav_board', short: 'tab_board' },
+    { to: '/pools', Icon: Users, label: 'nav_pools_f', short: 'tab_pools_f' },
+    { to: '/deals', Icon: Handshake, label: 'nav_deals', short: 'tab_deals' },
+    { to: '/insights', Icon: BarChart3, label: 'nav_insights', short: 'tab_insights' },
+    { to: '/how', Icon: CircleHelp, label: 'nav_how', short: 'tab_how', phone: false, iconOnly: true },
+  ],
+};
+
 export default function App() {
   const { me, lang, t, setLang } = useApp();
   const todo = useTracks().tracks.filter(needsYou).length;
+  const items = NAV[me.role];
 
   return (
     <>
@@ -24,16 +53,21 @@ export default function App() {
           <NavLink to="/" className="wordmark" aria-label="FRUITPOOL">
             <Citrus size={22} strokeWidth={2.25} aria-hidden /> FRUITPOOL
           </NavLink>
-          <nav className="nav">
-            <NavLink to="/me">
-              {t('nav_me')}
-              {todo > 0 && <span className="count" aria-label={t('n_todo', { n: todo })}>{todo}</span>}
-            </NavLink>
-            <NavLink to="/board">{t('nav_board')}</NavLink>
-            <NavLink to="/pools">{t('nav_pools')}</NavLink>
-            <NavLink to="/deals">{t('nav_deals')}</NavLink>
-            <NavLink to="/insights">{t('nav_insights')}</NavLink>
-            <NavLink to="/how">{t('nav_how')}</NavLink>
+          {/* Desktop: a row in the header. Phones: a tab bar fixed to the bottom of the screen. */}
+          <nav className="nav" aria-label={t('menu')}>
+            {items.map(({ to, Icon, label, short, phone, iconOnly }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={[phone === false && 'no-phone', iconOnly && 'icon-only'].filter(Boolean).join(' ') || undefined}
+                title={iconOnly ? t(label) : undefined}
+              >
+                <Icon size={18} aria-hidden className="nav-icon" />
+                <span className="lbl-long">{t(label)}</span>
+                <span className="lbl-short" aria-hidden>{t(short)}</span>
+                {to === '/me' && todo > 0 && <span className="count" aria-label={t('n_todo', { n: todo })}>{todo}</span>}
+              </NavLink>
+            ))}
           </nav>
           <div className="topbar-tools">
             <NavLink to="/me" className="userchip" title={t('nav_me')}>
@@ -60,7 +94,9 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <footer className="site-foot">{t('demo_note')}</footer>
+      <footer className="site-foot">
+        <NavLink to="/how">{t('nav_how')}</NavLink> · {t('demo_note')}
+      </footer>
       <DemoPanel />
     </>
   );

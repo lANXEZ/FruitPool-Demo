@@ -54,7 +54,7 @@ export default function DemoPanel() {
         </div>
       )}
       <button className="demo-fab" aria-expanded={open} aria-controls="demo-panel" onClick={() => setOpen(!open)}>
-        <SlidersHorizontal size={16} aria-hidden /> {t('demo_title')}
+        <SlidersHorizontal size={16} aria-hidden /> <span className="fab-label">{t('demo_title')}</span>
       </button>
     </div>
   );

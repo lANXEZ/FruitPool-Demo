@@ -51,7 +51,7 @@ export default function How() {
         <section className="example">
           <h2>{t('home_example')}</h2>
           <p className="muted" style={{ margin: '6px 0 14px' }}>{t('home_example_note')}</p>
-          <PoolCard pool={example.pool} quotes={example.quotes} />
+          <PoolCard pool={example.pool} quotes={example.quotes} defaultOpen />
         </section>
       )}
     </>

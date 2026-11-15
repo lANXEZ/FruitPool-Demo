@@ -22,14 +22,26 @@ npm run build    # type-check + production build into dist/
 
 ## Demo walkthrough
 
+Menus are named after what each role is doing, so shops and farmers see different labels for the same pages:
+
+| Page | Shop sees | Farmer sees |
+|---|---|---|
+| `/me` | My orders | My sales |
+| `/board` | Market | Market |
+| `/pools` | Buying groups | Shops buying |
+| `/deals` | My deals (only their own) | My deals (only their own) |
+| `/insights` | (not in the menu) | Insights |
+
+On phones the menu becomes a tab bar at the bottom of the screen.
+
 1. **Start page** (`/`): asks *who are you?* A shop or a farmer can **start** (create an account) or **try a sample account**.
-2. **My page** (`/me`): every order or listing the viewer has, each with a four-step tracker, one plain sentence on where it stands, and the button for the next step. Items that need the viewer are marked *Your turn* and counted in the menu badge.
-3. Try the sample **shop**: its mango order is in a group with 2 other Ari shops (a fourth café is left out: its 50 ฿ limit is below the price) at **55 ฿/kg** delivered (120 kg reaches the 48 ฿ tier, + 5 ฿ shared shipping + 2 ฿ fee), waiting for Lung Chai Mango Orchard to send an offer.
-4. Open **Demo controls** (bottom right) and switch to *Lung Chai Mango Orchard*. My page shows two groups ready for an offer: **See group and send offer** jumps to the pool, then **Send offer to this pool**.
-5. **Deal room**: each deal says whose turn it is. Switch back to the shop: My page now asks it to confirm. The farmer ships, shops confirm receipt or report a problem. The demo shortcut button plays the other parties' steps.
-6. **Pools**: also shows pools that are *not* viable (pineapple pool 45 kg short of the farmer minimum; a processing order too expensive from one farmer but fine from another).
-7. **Market board**: post a demand (as a shop) or a listing with your own price tiers (as a farmer). After posting you land on My page, which says what happens next.
-8. **Insights**: open requests and completed deals kept separate, labelled as FRUITPOOL-internal trends. **How it works** has the seven-step concept and the concept doc's example pool.
+2. **My orders / My sales** (`/me`): every order or listing the viewer has, each with a four-step tracker, one plain sentence on where it stands, and the button for the next step. Items that need the viewer are marked *Your turn* and counted in the menu badge.
+3. Try the sample **shop**: its mango order is in a group with 2 other Ari shops (a fourth café is left out: its 50 ฿ limit is below the price) at **55 ฿/kg** delivered (120 kg reaches the 48 ฿ tier, + 5 ฿ shared shipping + 2 ฿ fee), 4 ฿ less than it pays now, waiting for Lung Chai Mango Orchard to send an offer.
+4. Open **Demo controls** (bottom right) and switch to *Lung Chai Mango Orchard*. My sales shows two groups ready for an offer: **See group and send offer** jumps to the group, then **Send offer to this pool**.
+5. **My deals**: each deal says whose turn it is. Switch back to the shop: My orders now asks it to confirm. The farmer ships, shops confirm receipt or report a problem. The demo shortcut button plays the other parties' steps.
+6. **Buying groups / Shops buying**: each group opens with one line for the viewer (what a shop pays and saves, or what a farmer would earn) and the next button; **See details** shows the price tiers, the shops and the cost breakdown. A **?** next to terms such as *limit* and *delivered cost* explains them. Groups that are *not* ready show why (pineapple 45 kg short of the farmer's minimum; a processing order too expensive from one farmer but fine from another).
+7. **Market**: post a demand (as a shop) or a listing with your own price tiers (as a farmer). After posting you land on My orders / My sales, which says what happens next.
+8. **Insights** (farmers): open requests and completed deals kept separate, labelled as FRUITPOOL-internal trends. **How it works** (the **?** in the menu) has the seven-step concept and the concept doc's example group.
 
 **Demo controls** (bottom right) hold the presenter tools: switch user, create an account, **Reset demo**.
 
@@ -41,7 +53,7 @@ npm run build    # type-check + production build into dist/
 | `src/seed.ts` | Demo users, demands, listings, past deals (hypothetical figures). |
 | `src/store.tsx` | App state, localStorage persistence, deal status flow. |
 | `src/i18n.ts` | Thai / English strings. |
-| `src/pages/*` | Start, My page, How it works, Market board, Pools, Deal room, Insights, Join. |
+| `src/pages/*` | Start, My orders / My sales, How it works, Market, groups, My deals, Insights, Join. |
 | `src/lib/journey.ts` | Works out each viewer's next step for My page, the menu badge and the Deal room. |
 
 ## Rules in this demo

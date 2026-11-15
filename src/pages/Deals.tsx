@@ -13,7 +13,7 @@ const FLOW: DealStatus[] = ['awaiting', 'confirmed', 'shipped', 'completed'];
 const ACTIVE = ACTIVE_DEAL;
 
 export default function Deals() {
-  const { state, t } = useApp();
+  const { state, me, t } = useApp();
   const [params] = useSearchParams();
   const [tab, setTab] = useState<'active' | 'history'>(params.get('tab') === 'history' ? 'history' : 'active');
   const { hash } = useLocation();
@@ -24,7 +24,9 @@ export default function Deals() {
 
   // The deal you are working on (#id) stays in view even after it completes.
   const focused = hash.slice(1);
-  const list = state.deals.filter((d) =>
+  // Only deals the viewer is part of: other people's deals are not theirs to act on.
+  const mine = state.deals.filter((d) => d.farmerId === me.id || d.lines.some((l) => l.buyerId === me.id));
+  const list = mine.filter((d) =>
     tab === 'active' ? ACTIVE.includes(d.status) || d.id === focused : !ACTIVE.includes(d.status),
   );
 
@@ -41,7 +43,7 @@ export default function Deals() {
       {list.length === 0 && (
         <div className="empty">
           <p>{t(tab === 'active' ? 'no_deals' : 'no_history')}</p>
-          <Link className="btn" to="/me">{t('empty_to_me')}</Link>
+          <Link className="btn" to="/me">{t(me.role === 'buyer' ? 'nav_me_b' : 'nav_me_f')}</Link>
         </div>
       )}
       {list.map((d) => <DealCard key={d.id} deal={d} />)}
