@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../store';
 import { pick } from '../i18n';
 import { BUYER_KINDS, FARMER_KINDS, REGIONS, ZONES } from '../catalog';
@@ -8,7 +8,8 @@ import type { RegionId, Role, ZoneId } from '../types';
 export default function Join() {
   const { lang, t, addUser } = useApp();
   const navigate = useNavigate();
-  const [role, setRole] = useState<Role>('buyer');
+  const [params] = useSearchParams();
+  const [role, setRole] = useState<Role>(params.get('role') === 'farmer' ? 'farmer' : 'buyer');
   const [name, setName] = useState('');
   const [kind, setKind] = useState(0);
   const [zone, setZone] = useState<ZoneId>('ari');
@@ -25,8 +26,8 @@ export default function Join() {
     const n = name.trim();
     if (!n) return;
     const base = { role, name: { th: n, en: n }, kind: kinds[kind] };
-    addUser(role === 'buyer' ? { ...base, zone } : { ...base, region });
-    navigate('/board');
+    const userId = addUser(role === 'buyer' ? { ...base, zone } : { ...base, region });
+    navigate('/me', { state: { flash: { kind: 'joined', userId } } });
   };
 
   return (

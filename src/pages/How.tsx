@@ -7,7 +7,7 @@ import type { Key } from '../i18n';
 
 const STEPS = [1, 2, 3, 4, 5, 6, 7] as const;
 
-export default function Home() {
+export default function How() {
   const { state, t, num } = useApp();
   const pools = usePools();
   const open = state.demands.filter((d) => d.status === 'open').length;
@@ -51,7 +51,7 @@ export default function Home() {
         <section className="example">
           <h2>{t('home_example')}</h2>
           <p className="muted" style={{ margin: '6px 0 14px' }}>{t('home_example_note')}</p>
-          <PoolCard pool={example.pool} quotes={example.quotes} />
+          <PoolCard pool={example.pool} quotes={example.quotes} defaultOpen />
         </section>
       )}
     </>

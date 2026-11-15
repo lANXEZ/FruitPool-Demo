@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { AlertTriangle, Check, PackageCheck, Truck, Undo2, FastForward } from 'lucide-react';
 import { useApp } from '../store';
 import { pick, type Key } from '../i18n';
 import { FRUITS, ZONES } from '../catalog';
 import { fmtDate, fmtDateTime } from '../lib/dates';
 import { GradeTag } from '../components/PoolCard';
+import { ACTIVE_DEAL, useDealNext } from '../lib/journey';
 import type { Deal, DealStatus } from '../types';
 
 const FLOW: DealStatus[] = ['awaiting', 'confirmed', 'shipped', 'completed'];
-const ACTIVE: DealStatus[] = ['awaiting', 'confirmed', 'shipped', 'disputed'];
+const ACTIVE = ACTIVE_DEAL;
 
 export default function Deals() {
-  const { state, t } = useApp();
-  const [tab, setTab] = useState<'active' | 'history'>('active');
+  const { state, me, t } = useApp();
+  const [params] = useSearchParams();
+  const [tab, setTab] = useState<'active' | 'history'>(params.get('tab') === 'history' ? 'history' : 'active');
   const { hash } = useLocation();
 
   useEffect(() => {
@@ -22,7 +24,9 @@ export default function Deals() {
 
   // The deal you are working on (#id) stays in view even after it completes.
   const focused = hash.slice(1);
-  const list = state.deals.filter((d) =>
+  // Only deals the viewer is part of: other people's deals are not theirs to act on.
+  const mine = state.deals.filter((d) => d.farmerId === me.id || d.lines.some((l) => l.buyerId === me.id));
+  const list = mine.filter((d) =>
     tab === 'active' ? ACTIVE.includes(d.status) || d.id === focused : !ACTIVE.includes(d.status),
   );
 
@@ -36,7 +40,12 @@ export default function Deals() {
         <button className="chip" aria-pressed={tab === 'active'} onClick={() => setTab('active')}>{t('tab_active')}</button>
         <button className="chip" aria-pressed={tab === 'history'} onClick={() => setTab('history')}>{t('tab_history')}</button>
       </div>
-      {list.length === 0 && <p className="empty">{t('no_deals')}</p>}
+      {list.length === 0 && (
+        <div className="empty">
+          <p>{t(tab === 'active' ? 'no_deals' : 'no_history')}</p>
+          <Link className="btn" to="/me">{t(me.role === 'buyer' ? 'nav_me_b' : 'nav_me_f')}</Link>
+        </div>
+      )}
       {list.map((d) => <DealCard key={d.id} deal={d} />)}
     </>
   );
@@ -52,9 +61,12 @@ function DealCard({ deal }: { deal: Deal }) {
   const { lang, t, num, me, userById } = app;
   const [disputing, setDisputing] = useState(false);
   const [note, setNote] = useState('');
+  const next = useDealNext()(deal);
 
   const landed = deal.pricePerKg + deal.shippingPerKg + deal.feePerKg;
-  const myLine = deal.lines.find((l) => l.buyerId === me.id);
+  // Prefer one of my lines that still needs me, in case I have more than one order in this deal.
+  const myLines = deal.lines.filter((l) => l.buyerId === me.id);
+  const myLine = myLines.find((l) => (deal.status === 'shipped' ? !l.received : !l.confirmed)) ?? myLines[0];
   const isFarmer = me.id === deal.farmerId;
   const nowIdx = FLOW.indexOf(deal.status === 'disputed' ? 'shipped' : deal.status);
   const othersPending =
@@ -74,6 +86,12 @@ function DealCard({ deal }: { deal: Deal }) {
         <div className="row small muted" style={{ marginTop: 4 }}>
           {pick(userById(deal.farmerId).name, lang)} <GradeTag g={deal.grade} /> → {pick(ZONES[deal.zone], lang)} · {t('delivery')} {fmtDate(deal.deliveryDate, lang)}
         </div>
+
+        {next && (
+          <p className={`deal-next tone-${next.tone}`}>
+            <strong>{t(next.tone === 'action' ? 'next_you' : next.tone === 'problem' ? 'next_problem' : 'next_wait')}</strong> {next.msg}
+          </p>
+        )}
 
         {deal.status !== 'cancelled' && (
           <div className="steps" aria-hidden>

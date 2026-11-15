@@ -117,22 +117,32 @@ function useAppState() {
       setState(keep ? { ...seed, currentUserId: state.currentUserId } : seed);
     },
 
-    /** Demo sign-up: no password, the account lives in this browser and becomes the current viewer. */
-    addUser: (u: Omit<User, 'id'>) =>
+    /** Demo sign-up: no password, the account lives in this browser and becomes the current viewer. Returns its id. */
+    addUser: (u: Omit<User, 'id'>) => {
+      const id = uid(u.role === 'buyer' ? 'b' : 'f');
       mutate((s) => {
-        const id = uid(u.role === 'buyer' ? 'b' : 'f');
         s.users.push({ ...u, id });
         s.currentUserId = id;
-      }),
+      });
+      return id;
+    },
 
-    addDemand: (d: Omit<Demand, 'id' | 'status' | 'buyerId'>) =>
-      mutate((s) => void s.demands.push({ ...d, id: uid('d'), buyerId: s.currentUserId, status: 'open' })),
+    /** Returns the new demand's id. */
+    addDemand: (d: Omit<Demand, 'id' | 'status' | 'buyerId'>) => {
+      const id = uid('d');
+      mutate((s) => void s.demands.push({ ...d, id, buyerId: s.currentUserId, status: 'open' }));
+      return id;
+    },
 
-    addSupply: (x: Omit<Supply, 'id' | 'farmerId' | 'region'>) =>
+    /** Returns the new listing's id. */
+    addSupply: (x: Omit<Supply, 'id' | 'farmerId' | 'region'>) => {
+      const id = uid('s');
       mutate((s) => {
         const u = s.users.find((y) => y.id === s.currentUserId)!;
-        s.supplies.push({ ...x, id: uid('s'), farmerId: u.id, region: u.region ?? 'central' });
-      }),
+        s.supplies.push({ ...x, id, farmerId: u.id, region: u.region ?? 'central' });
+      });
+      return id;
+    },
 
     /** Farmer locks the quoted terms and offers them to the shops in the pool. */
     sendOffer: (q: Quote, pool: { zone: Deal['zone']; deliveryDate: string }) => {
@@ -162,9 +172,10 @@ function useAppState() {
 
     confirmLine: (dealId: string, buyerId: string) =>
       withDeal(dealId, (deal, s) => {
-        const line = deal.lines.find((l) => l.buyerId === buyerId && !l.confirmed);
-        if (!line || deal.status !== 'awaiting') return;
-        line.confirmed = true;
+        // A shop may have more than one order in the deal: "Confirm my order" covers all of them.
+        const lines = deal.lines.filter((l) => l.buyerId === buyerId && !l.confirmed);
+        if (lines.length === 0 || deal.status !== 'awaiting') return;
+        for (const l of lines) l.confirmed = true;
         deal.events.push({ at: now(), key: 'ev_confirmed_line', by: buyerId });
         lockIfAllConfirmed(s, deal);
       }),
@@ -178,9 +189,9 @@ function useAppState() {
 
     receive: (dealId: string, buyerId: string) =>
       withDeal(dealId, (deal, s) => {
-        const line = deal.lines.find((l) => l.buyerId === buyerId && !l.received);
-        if (!line || deal.status !== 'shipped') return;
-        line.received = true;
+        const lines = deal.lines.filter((l) => l.buyerId === buyerId && !l.received);
+        if (lines.length === 0 || deal.status !== 'shipped') return;
+        for (const l of lines) l.received = true;
         deal.events.push({ at: now(), key: 'ev_received', by: buyerId });
         finishIfAllReceived(deal, s.demands);
       }),
