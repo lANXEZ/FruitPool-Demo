@@ -12,6 +12,14 @@ import ListingTags from '../components/ListingTags';
 import { isFeatured } from '../lib/revenue';
 import type { FruitId, Grade, Purpose, Supply, ZoneId } from '../types';
 
+/**
+ * A number box's value. It is '' while the box is cleared, so the user can empty it and type a new
+ * number; parsing '' as 0 left a 0 stuck in the box (deleting it put it straight back, typing gave "05").
+ */
+type Num = number | '';
+const toNum = (v: string): Num => (v === '' ? '' : Number(v));
+const n = (v: Num) => (v === '' ? 0 : v);
+
 export default function Board() {
   const { state, lang, t, num, me, userById } = useApp();
   const [fruit, setFruit] = useState<FruitId | 'all'>('all');
@@ -119,13 +127,13 @@ function DemandForm({ onDone }: { onDone: () => void }) {
   const { lang, t, me, addDemand } = useApp();
   const navigate = useNavigate();
   const [f, setF] = useState({
-    fruit: 'mango' as FruitId, qtyKg: 30, purpose: 'juice' as Purpose, maxCost: 58, currentCost: '' as number | '',
+    fruit: 'mango' as FruitId, qtyKg: 30 as Num, purpose: 'juice' as Purpose, maxCost: 58 as Num, currentCost: '' as Num,
     zone: (me.zone ?? 'ari') as ZoneId, neededBy: addDays(today(), 5),
   });
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF({ ...f, [k]: v });
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const id = addDemand({ ...f, currentCost: f.currentCost === '' ? undefined : f.currentCost });
+    const id = addDemand({ ...f, qtyKg: n(f.qtyKg), maxCost: n(f.maxCost), currentCost: f.currentCost === '' ? undefined : f.currentCost });
     navigate('/me', { state: { flash: { kind: 'demand', id, userId: me.id } } });
   };
   return (
@@ -138,7 +146,7 @@ function DemandForm({ onDone }: { onDone: () => void }) {
       </div>
       <div className="field">
         <label htmlFor="dq">{t('f_qty')}</label>
-        <input id="dq" type="number" min={1} required value={f.qtyKg} onChange={(e) => set('qtyKg', Number(e.target.value))} />
+        <input id="dq" type="number" min={1} required value={f.qtyKg} onChange={(e) => set('qtyKg', toNum(e.target.value))} />
       </div>
       <div className="field">
         <label htmlFor="dp">{t('f_purpose')}</label>
@@ -158,12 +166,12 @@ function DemandForm({ onDone }: { onDone: () => void }) {
       </div>
       <div className="field">
         <label htmlFor="dm">{t('f_maxcost')}</label>
-        <input id="dm" type="number" min={1} step="0.5" required value={f.maxCost} onChange={(e) => set('maxCost', Number(e.target.value))} />
+        <input id="dm" type="number" min={1} step="0.5" required value={f.maxCost} onChange={(e) => set('maxCost', toNum(e.target.value))} />
         <span className="hint">{t('f_maxcost_hint')}</span>
       </div>
       <div className="field">
         <label htmlFor="dc">{t('f_current')}</label>
-        <input id="dc" type="number" min={0} step="0.5" value={f.currentCost} onChange={(e) => set('currentCost', e.target.value === '' ? '' : Number(e.target.value))} />
+        <input id="dc" type="number" min={0} step="0.5" value={f.currentCost} onChange={(e) => set('currentCost', toNum(e.target.value))} />
         <span className="hint">{t('f_current_hint')}</span>
       </div>
       <div className="full row">
@@ -178,21 +186,24 @@ function SupplyForm({ onDone }: { onDone: () => void }) {
   const { state, lang, t, num, me, addSupply } = useApp();
   const navigate = useNavigate();
   const [f, setF] = useState({
-    fruit: 'mango' as FruitId, variety: '', grade: 'A' as Grade, qtyKg: 200,
+    fruit: 'mango' as FruitId, variety: '', grade: 'A' as Grade, qtyKg: 200 as Num,
     availableFrom: today(), availableTo: addDays(today(), 14),
   });
-  const [tiers, setTiers] = useState([{ minKg: 50, price: 50 }, { minKg: 150, price: 46 }]);
+  const [tiers, setTiers] = useState<{ minKg: Num; price: Num }[]>([{ minKg: 50, price: 50 }, { minKg: 150, price: 46 }]);
   const [addons, setAddons] = useState({ verify: false, feature: false });
   const { settings } = state;
   const addonTotal = (addons.verify ? settings.verifyFee : 0) + (addons.feature ? settings.featureFee : 0);
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF({ ...f, [k]: v });
-  const setTier = (i: number, k: 'minKg' | 'price', v: number) => setTiers(tiers.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+  const setTier = (i: number, k: 'minKg' | 'price', v: Num) => setTiers(tiers.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const clean = tiers.filter((x) => x.minKg > 0 && x.price > 0).sort((a, b) => a.minKg - b.minKg);
+    const clean = tiers
+      .map((x) => ({ minKg: n(x.minKg), price: n(x.price) }))
+      .filter((x) => x.minKg > 0 && x.price > 0)
+      .sort((a, b) => a.minKg - b.minKg);
     if (clean.length === 0) return;
     const v = f.variety.trim() || pick(FRUITS[f.fruit], lang);
-    const id = addSupply({ ...f, variety: { th: v, en: v }, tiers: clean }, addons);
+    const id = addSupply({ ...f, qtyKg: n(f.qtyKg), variety: { th: v, en: v }, tiers: clean }, addons);
     navigate('/me', { state: { flash: { kind: 'supply', id, userId: me.id } } });
   };
   return (
@@ -215,7 +226,7 @@ function SupplyForm({ onDone }: { onDone: () => void }) {
       </div>
       <div className="field">
         <label htmlFor="sq">{t('f_available')}</label>
-        <input id="sq" type="number" min={1} required value={f.qtyKg} onChange={(e) => set('qtyKg', Number(e.target.value))} />
+        <input id="sq" type="number" min={1} required value={f.qtyKg} onChange={(e) => set('qtyKg', toNum(e.target.value))} />
       </div>
       <div className="field">
         <label htmlFor="sa">{t('f_from')}</label>
@@ -232,11 +243,11 @@ function SupplyForm({ onDone }: { onDone: () => void }) {
           <div className="tier-row" key={i}>
             <div className="field">
               <label htmlFor={`tm${i}`}>{t('f_tier_min')}</label>
-              <input id={`tm${i}`} type="number" min={1} required value={tr.minKg} onChange={(e) => setTier(i, 'minKg', Number(e.target.value))} />
+              <input id={`tm${i}`} type="number" min={1} required value={tr.minKg} onChange={(e) => setTier(i, 'minKg', toNum(e.target.value))} />
             </div>
             <div className="field">
               <label htmlFor={`tp${i}`}>{t('f_tier_price')}</label>
-              <input id={`tp${i}`} type="number" min={1} step="0.5" required value={tr.price} onChange={(e) => setTier(i, 'price', Number(e.target.value))} />
+              <input id={`tp${i}`} type="number" min={1} step="0.5" required value={tr.price} onChange={(e) => setTier(i, 'price', toNum(e.target.value))} />
             </div>
             {tiers.length > 1 && (
               <button type="button" className="btn secondary" aria-label={t('remove')} onClick={() => setTiers(tiers.filter((_, j) => j !== i))}>
@@ -246,7 +257,7 @@ function SupplyForm({ onDone }: { onDone: () => void }) {
           </div>
         ))}
         {tiers.length < 4 && (
-          <button type="button" className="btn link" onClick={() => setTiers([...tiers, { minKg: (tiers.at(-1)?.minKg ?? 0) + 100, price: tiers.at(-1)?.price ?? 40 }])}>
+          <button type="button" className="btn link" onClick={() => setTiers([...tiers, { minKg: n(tiers.at(-1)?.minKg ?? 0) + 100, price: n(tiers.at(-1)?.price ?? 0) || 40 }])}>
             {t('add_tier')}
           </button>
         )}
