@@ -31,7 +31,11 @@ function load(): AppState {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw) as AppState;
-      if (s.version === STATE_VERSION) return shiftDates(s);
+      if (s.version === STATE_VERSION) {
+        // Data saved before a region existed has no shipping rate for it: fill in the missing ones.
+        s.settings.shipping = { ...seedState().settings.shipping, ...s.settings.shipping };
+        return shiftDates(s);
+      }
     }
   } catch {
     /* storage blocked or corrupt: fall back to seed */

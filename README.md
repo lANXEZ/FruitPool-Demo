@@ -60,7 +60,7 @@ On phones the menu becomes a tab bar at the bottom of the screen.
 
 - Purpose → accepted grades: fresh sale A; juicing A/B; smoothies A/B/C; processing B/C.
 - Pool window: delivery dates within 3 days, same delivery zone.
-- Shipping per kg = truck trip cost ÷ pooled kg + per-kg rate by farm region (central 360 ฿/trip + 2 ฿/kg, east 600 + 2.5, north 1,200 + 3, northeast 1,000 + 3).
+- Shipping per kg = truck trip cost ÷ pooled kg + per-kg rate by farm region (central 360 ฿/trip + 2 ฿/kg, east 600 + 2.5, west 450 + 2, north 1,200 + 3, northeast 1,000 + 3, south 1,400 + 3.5).
 - Fee: 2 ฿/kg. A shop's "limit" is its max **landed** cost per kg.
 
 ## Moving to a real backend later
