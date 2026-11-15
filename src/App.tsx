@@ -1,5 +1,5 @@
 import { NavLink, Route, Routes, Navigate } from 'react-router-dom';
-import { BarChart3, Citrus, CircleHelp, Handshake, ListChecks, Sprout, Store, Users, type LucideIcon } from 'lucide-react';
+import { BarChart3, CircleHelp, Handshake, ListChecks, Sprout, Store, Users, type LucideIcon } from 'lucide-react';
 import { useApp } from './store';
 import { pick, type Key } from './i18n';
 import { needsYou, useTracks } from './lib/journey';
@@ -51,8 +51,9 @@ export default function App() {
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <NavLink to="/" className="wordmark" aria-label="FRUITPOOL">
-            <Citrus size={22} strokeWidth={2.25} aria-hidden /> FRUITPOOL
+          {/* The team's logo. It sits on a light plate: its green "T" and red "FRUIT" disappear on the green bar. */}
+          <NavLink to="/" className="wordmark">
+            <img src="/fruitpool-logo.png" alt="FRUITPOOL" width={87} height={40} />
           </NavLink>
           {/* Desktop: a row in the header. Phones: a tab bar fixed to the bottom of the screen. */}
           <nav className="nav" aria-label={t('menu')}>
