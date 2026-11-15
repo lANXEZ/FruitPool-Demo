@@ -51,8 +51,14 @@ button, input, select { font: inherit; color: inherit; }
   max-width: 1280px; margin: 0 auto; padding: 10px 16px;
   display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
 }
-.wordmark { font: 700 1.25rem/1 var(--display); letter-spacing: 0.06em; color: inherit; text-decoration: none; display: flex; align-items: center; gap: 8px; min-height: 44px; }
-.wordmark svg { color: var(--mango); }
+.wordmark {
+  display: flex; align-items: center; flex: none; min-height: 44px; padding: 2px 8px;
+  background: #fff; border-radius: var(--r-md); text-decoration: none;
+  transition: box-shadow 120ms ease-out;
+}
+.wordmark img { display: block; height: 40px; width: auto; }
+.wordmark:hover { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35); }
+.wordmark:focus-visible { outline: 3px solid var(--mango); outline-offset: 2px; }
 .nav { display: flex; gap: 2px; flex-wrap: wrap; }
 .nav a {
   display: inline-flex; align-items: center; gap: 6px; min-height: 44px;
@@ -404,7 +410,8 @@ details.others summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
 
 @media (max-width: 760px) {
   .topbar-inner { gap: 8px; padding: 8px 16px; flex-wrap: nowrap; }
-  .wordmark { font-size: 1.05rem; }
+  .wordmark { padding: 2px 6px; }
+  .wordmark img { height: 36px; }
   .topbar .topbar-tools { margin-left: auto; width: auto; flex-wrap: nowrap; }
   .topbar .topbar-tools { min-width: 0; gap: 6px; }
   .userchip { max-width: 140px; min-width: 0; flex: 0 1 auto; padding: 5px 10px; }
