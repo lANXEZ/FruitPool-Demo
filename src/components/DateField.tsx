@@ -7,11 +7,44 @@ function display(iso: string): string {
   return y && m && d ? `${d}/${m}/${y}` : '';
 }
 
-/** DD/MM/YYYY (also D/M/YYYY, or "-" / "." separators) → YYYY-MM-DD, or null if not a real date. */
+/**
+ * Tidy what the user typed into D/M/Y form. Phone number pads have no "/" key, so slashes are
+ * added after the day and month digits ("15112026" → "15/11/2026"); typed "/", "." or "-" also
+ * end a part, so "1/5/2026" still works. Backspacing over an added slash just removes it.
+ */
+function formatTyping(raw: string): string {
+  const iso = raw.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/); // pasted YYYY-MM-DD
+  if (iso) return `${iso[3].padStart(2, '0')}/${iso[2].padStart(2, '0')}/${iso[1]}`;
+  const max = [2, 2, 4];
+  const parts: string[] = [];
+  let cur = '';
+  for (const c of raw) {
+    if (/[/.\-\s]/.test(c)) {
+      if (cur !== '' && parts.length < 2) {
+        parts.push(cur);
+        cur = '';
+      }
+    } else if (/\d/.test(c)) {
+      if (cur.length === max[parts.length]) {
+        if (parts.length === 2) continue; // year is full
+        parts.push(cur);
+        cur = '';
+      }
+      cur += c;
+    }
+  }
+  return parts.length ? `${parts.join('/')}/${cur}` : cur;
+}
+
+/**
+ * DD/MM/YYYY (also D/M/YYYY) → YYYY-MM-DD, or null if not a real date.
+ * A Thai Buddhist-era year (e.g. 2569) is read as the same year in CE (2026).
+ */
 function parseDMY(text: string): string | null {
-  const m = text.trim().match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/);
+  const m = text.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (!m) return null;
-  const [d, mo, y] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const be = Number(m[3]);
+  const [d, mo, y] = [Number(m[1]), Number(m[2]), be >= 2400 ? be - 543 : be];
   const dt = new Date(y, mo - 1, d);
   if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
   const p = (n: number) => String(n).padStart(2, '0');
@@ -69,9 +102,11 @@ export default function DateField({ id, value, onChange, min, required }: Props)
         autoComplete="off"
         required={required}
         value={text}
+        maxLength={10}
         onChange={(e) => {
-          setText(e.target.value);
-          const iso = parseDMY(e.target.value);
+          const next = formatTyping(e.target.value);
+          setText(next);
+          const iso = parseDMY(next);
           if (iso) onChange(iso);
         }}
         onBlur={() => {
