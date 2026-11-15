@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { RotateCcw, SlidersHorizontal, UserPlus, X } from 'lucide-react';
+import { Coins, RotateCcw, SlidersHorizontal, UserPlus, X } from 'lucide-react';
 import { useApp } from '../store';
 import { pick } from '../i18n';
 
@@ -49,6 +49,7 @@ export default function DemoPanel() {
           </label>
           <div className="row">
             <Link className="btn secondary" to="/join" onClick={() => setOpen(false)}><UserPlus size={16} aria-hidden /> {t('join')}</Link>
+            <Link className="btn secondary" to="/revenue" onClick={() => setOpen(false)}><Coins size={16} aria-hidden /> {t('rev_title')}</Link>
             <button className="btn danger" onClick={reset}><RotateCcw size={16} aria-hidden /> {t('reset')}</button>
           </div>
         </div>

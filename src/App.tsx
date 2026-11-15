@@ -11,6 +11,7 @@ import Pools from './pages/Pools';
 import Deals from './pages/Deals';
 import Insights from './pages/Insights';
 import Join from './pages/Join';
+import Revenue from './pages/Revenue';
 import DemoPanel from './components/DemoPanel';
 
 interface NavItem {
@@ -91,6 +92,7 @@ export default function App() {
           <Route path="/deals" element={<Deals />} />
           <Route path="/insights" element={<Insights />} />
           <Route path="/join" element={<Join />} />
+          <Route path="/revenue" element={<Revenue />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

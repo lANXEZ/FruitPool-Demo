@@ -1,7 +1,8 @@
-import type { AppState, Deal, Demand, Supply, User } from './types';
+import type { AppState, Charge, Deal, Demand, Supply, User } from './types';
 import { addDays, today } from './lib/dates';
 
-export const STATE_VERSION = 1;
+/** Bump when the saved shape changes: browsers holding an older version start again from this seed. */
+export const STATE_VERSION = 2;
 
 /** Demo data. Names, prices and volumes are hypothetical, mirroring the concept doc's example. */
 export function seedState(): AppState {
@@ -27,13 +28,16 @@ export function seedState(): AppState {
   const ndm = { th: 'น้ำดอกไม้', en: 'Nam Dok Mai' };
   const supplies: Supply[] = [
     { id: 's1', farmerId: 'f1', fruit: 'mango', variety: ndm, grade: 'B', qtyKg: 400, region: 'central', availableFrom: d(-2), availableTo: d(14),
-      tiers: [ { minKg: 50, price: 52 }, { minKg: 100, price: 48 }, { minKg: 200, price: 46 } ] },
+      tiers: [ { minKg: 50, price: 52 }, { minKg: 100, price: 48 }, { minKg: 200, price: 46 } ],
+      verify: { status: 'pending', requestedAt: at(-1) } },
     { id: 's2', farmerId: 'f2', fruit: 'mango', variety: ndm, grade: 'A', qtyKg: 600, region: 'north', availableFrom: d(-1), availableTo: d(20),
-      tiers: [ { minKg: 100, price: 47 }, { minKg: 300, price: 44 } ] },
+      tiers: [ { minKg: 100, price: 47 }, { minKg: 300, price: 44 } ],
+      verify: { status: 'verified', requestedAt: at(-22), verifiedAt: at(-20) }, featuredUntil: d(-9) },
     { id: 's3', farmerId: 'f3', fruit: 'pineapple', variety: { th: 'ปัตตาเวีย', en: 'Pattavia' }, grade: 'A', qtyKg: 500, region: 'east', availableFrom: d(0), availableTo: d(21),
-      tiers: [ { minKg: 80, price: 22 }, { minKg: 200, price: 19 } ] },
+      tiers: [ { minKg: 80, price: 22 }, { minKg: 200, price: 19 } ], featuredUntil: d(3) },
     { id: 's4', farmerId: 'f4', fruit: 'guava', variety: { th: 'กิมจู', en: 'Kim Ju' }, grade: 'A', qtyKg: 300, region: 'central', availableFrom: d(-3), availableTo: d(18),
-      tiers: [ { minKg: 30, price: 35 }, { minKg: 100, price: 31 } ] },
+      tiers: [ { minKg: 30, price: 35 }, { minKg: 100, price: 31 } ],
+      verify: { status: 'verified', requestedAt: at(-12), verifiedAt: at(-10) } },
     { id: 's5', farmerId: 'f1', fruit: 'mango', variety: ndm, grade: 'C', qtyKg: 300, region: 'central', availableFrom: d(0), availableTo: d(16),
       tiers: [ { minKg: 100, price: 28 }, { minKg: 250, price: 24 } ] },
   ];
@@ -71,6 +75,15 @@ export function seedState(): AppState {
     hist('h6', 's1', 'f1', 'mango', 'B', 'ari', -3, 48, 4.77, [ ['b2', 60], ['b4', 50] ]),
   ];
 
+  // What the farmers paid for those add-ons (placeholder prices, see settings).
+  const charges: Charge[] = [
+    { id: 'c1', at: at(-22), farmerId: 'f2', supplyId: 's2', kind: 'verify', amount: 300 },
+    { id: 'c2', at: at(-15), farmerId: 'f2', supplyId: 's2', kind: 'feature', amount: 150 },
+    { id: 'c3', at: at(-12), farmerId: 'f4', supplyId: 's4', kind: 'verify', amount: 300 },
+    { id: 'c4', at: at(-3), farmerId: 'f3', supplyId: 's3', kind: 'feature', amount: 150 },
+    { id: 'c5', at: at(-1), farmerId: 'f1', supplyId: 's1', kind: 'verify', amount: 300 },
+  ];
+
   return {
     version: STATE_VERSION,
     anchor: t,
@@ -79,9 +92,13 @@ export function seedState(): AppState {
     demands,
     supplies,
     deals,
+    charges,
     settings: {
       feePerKg: 2,
       poolWindowDays: 3,
+      verifyFee: 300,
+      featureFee: 150,
+      featureDays: 7,
       shipping: {
         central: { trip: 360, perKg: 2 },
         east: { trip: 600, perKg: 2.5 },

@@ -43,7 +43,10 @@ On phones the menu becomes a tab bar at the bottom of the screen.
 7. **Market**: post a demand (as a shop) or a listing with your own price tiers (as a farmer). After posting you land on My orders / My sales, which says what happens next.
 8. **Insights** (farmers): open requests and completed deals kept separate, labelled as FRUITPOOL-internal trends. **How it works** (the **?** in the menu) has the seven-step concept and the concept doc's example group.
 
-**Demo controls** (bottom right) hold the presenter tools: switch user, create an account, **Reset demo**.
+9. **Farmer add-ons (revenue)**: as a farmer, your own listings on **Market** have two paid buttons, also offered as checkboxes when posting a listing. **Verify grade** (300 ฿) puts the listing in *waiting for the inspector*; the demo shortcut plays the inspection, then shops see a **Verified grade** badge on the Market and in groups. **Promote** (150 ฿ for 7 days) lists it first on the Market with a **Promoted** label; buying again extends it by 7 days from the current end. Each purchase asks for confirmation; no real payment is taken.
+10. **FRUITPOOL revenue** (from **Demo controls** or **How it works**): the platform's income from the 2 ฿/kg deal fee, grade verification and promoted listings, with every item listed. It is computed live: finish a deal or buy an add-on and the total moves.
+
+**Demo controls** (bottom right) hold the presenter tools: switch user, create an account, **FRUITPOOL revenue**, **Reset demo**.
 
 ## Where things live
 
@@ -54,6 +57,7 @@ On phones the menu becomes a tab bar at the bottom of the screen.
 | `src/store.tsx` | App state, localStorage persistence, deal status flow. |
 | `src/i18n.ts` | Thai / English strings. |
 | `src/pages/*` | Start, My orders / My sales, How it works, Market, groups, My deals, Insights, Join. |
+| `src/lib/revenue.ts` | FRUITPOOL's income from deal fees and farmer add-ons (Revenue page). |
 | `src/lib/journey.ts` | Works out each viewer's next step for My page, the menu badge and the Deal room. |
 
 ## Rules in this demo
@@ -62,6 +66,8 @@ On phones the menu becomes a tab bar at the bottom of the screen.
 - Pool window: delivery dates within 3 days, same delivery zone.
 - Shipping per kg = truck trip cost ÷ pooled kg + per-kg rate by farm region (central 360 ฿/trip + 2 ฿/kg, east 600 + 2.5, west 450 + 2, north 1,200 + 3, northeast 1,000 + 3, south 1,400 + 3.5).
 - Fee: 2 ฿/kg. A shop's "limit" is its max **landed** cost per kg.
+- Farmer add-ons (placeholder prices; the concept doc lists Featured Listing as a revenue stream but sets no price): grade verification 300 ฿ per listing, promotion 150 ฿ per 7 days. Both are in `settings` in `src/seed.ts`.
+- A promotion changes **placement only**: it lists the farmer first on the Market. Matching still picks the farmer with the lowest delivered cost, so paying never changes which farmer wins a group or what a shop pays.
 
 ## Moving to a real backend later
 

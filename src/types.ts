@@ -51,6 +51,20 @@ export interface Supply {
   region: RegionId;
   availableFrom: string;
   availableTo: string;
+  /** Paid grade verification: an inspector checks the lot, then shops see a "verified" badge. */
+  verify?: { status: 'pending' | 'verified'; requestedAt: string; verifiedAt?: string };
+  /** Paid promotion: listed first on the Market until this date (inclusive). Does not change matching. */
+  featuredUntil?: string;
+}
+
+/** A paid farmer add-on: one row of FRUITPOOL's add-on income. */
+export interface Charge {
+  id: string;
+  at: string; // ISO datetime
+  farmerId: string;
+  supplyId: string;
+  kind: 'verify' | 'feature';
+  amount: number; // baht
 }
 
 export type DealStatus = 'awaiting' | 'confirmed' | 'shipped' | 'completed' | 'disputed' | 'cancelled';
@@ -93,6 +107,10 @@ export interface Settings {
   shipping: Record<RegionId, { trip: number; perKg: number }>;
   /** Max days between delivery dates of orders in the same pool. */
   poolWindowDays: number;
+  /** Farmer add-ons (placeholder prices; the concept doc names the services but not their price). */
+  verifyFee: number; // baht per listing
+  featureFee: number; // baht per promotion
+  featureDays: number; // days one promotion lasts
 }
 
 export interface AppState {
@@ -103,5 +121,6 @@ export interface AppState {
   demands: Demand[];
   supplies: Supply[];
   deals: Deal[];
+  charges: Charge[];
   settings: Settings;
 }
