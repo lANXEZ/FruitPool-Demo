@@ -39,8 +39,8 @@ On phones the menu becomes a tab bar at the bottom of the screen.
 3. Try the sample **shop**: its mango order is in a group with 2 other Ari shops (a fourth café is left out: its 50 ฿ limit is below the price) at **55 ฿/kg** delivered (120 kg reaches the 48 ฿ tier, + 5 ฿ shared shipping + 2 ฿ fee), 4 ฿ less than it pays now, waiting for Lung Chai Mango Orchard to send an offer.
 4. Open **Demo controls** (bottom right) and switch to *Lung Chai Mango Orchard*. My sales shows two groups ready for an offer: **See group and send offer** jumps to the group, then **Send offer to this pool**.
 5. **My deals**: each deal says whose turn it is. Switch back to the shop: My orders now asks it to confirm. The farmer ships, shops confirm receipt or report a problem. The demo shortcut button plays the other parties' steps.
-6. **Buying groups / Shops buying**: each group opens with one line for the viewer (what a shop pays and saves, or what a farmer would earn) and the next button; **See details** shows the price tiers, the shops and the cost breakdown. A **?** next to terms such as *limit* and *delivered cost* explains them. Groups that are *not* ready show why (pineapple 45 kg short of the farmer's minimum; a processing order too expensive from one farmer but fine from another).
-7. **Market**: post a demand (as a shop) or a listing with your own price tiers (as a farmer). After posting you land on My orders / My sales, which says what happens next.
+6. **Buying groups / Shops buying**: each group opens with one line for the viewer (what a shop pays and saves, or what a farmer would earn) and the next button; Each priced group also shows its delivered cost as a sum (fruit + shipping + fee). A shop that is not in a group can press **Join this group**: the order form opens filled in for that group and only needs the kilos. **See details** shows the price tiers, the shops and the cost breakdown. A **?** next to terms such as *limit* and *delivered cost* explains them. Groups that are *not* ready show why (pineapple 45 kg short of the farmer's minimum; a processing order too expensive from one farmer but fine from another).
+7. **Market**: post a demand (as a shop) or a listing with your own price tiers (as a farmer). Shops can also press **Order this fruit** on a farmer's listing to open a filled-in order form. After posting you land on My orders / My sales, which says what happens next.
 8. **Insights** (farmers): open requests and completed deals kept separate, labelled as FRUITPOOL-internal trends. **How it works** (the **?** in the menu) has the seven-step concept and the concept doc's example group.
 
 9. **Farmer add-ons (revenue)**: as a farmer, your own listings on **Market** have two paid buttons, also offered as checkboxes when posting a listing. **Verify grade** (300 ฿) puts the listing in *waiting for the inspector*; the demo shortcut plays the inspection, then shops see a **Verified grade** badge on the Market and in groups. **Promote** (150 ฿ for 7 days) lists it first on the Market with a **Promoted** label; buying again extends it by 7 days from the current end. Each purchase asks for confirmation; no real payment is taken.
@@ -59,6 +59,7 @@ On phones the menu becomes a tab bar at the bottom of the screen.
 | `src/pages/*` | Start, My orders / My sales, How it works, Market, groups, My deals, Insights, Join. |
 | `src/lib/revenue.ts` | FRUITPOOL's income from deal fees and farmer add-ons (Revenue page). |
 | `src/lib/journey.ts` | Works out each viewer's next step for My page, the menu badge and the Deal room. |
+| `lean.md` | Lean Startup notes: what testers told us, what we changed, and the next experiments. |
 
 ## Rules in this demo
 

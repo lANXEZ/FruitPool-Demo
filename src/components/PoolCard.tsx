@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Send, Truck } from 'lucide-react';
+import { ChevronDown, Send, Truck, UserPlus } from 'lucide-react';
 import { useApp } from '../store';
 import { pick } from '../i18n';
 import { FRUITS, PURPOSES, REGIONS, ZONES } from '../catalog';
@@ -52,6 +52,19 @@ export default function PoolCard({ pool, quotes, focus, defaultOpen }: { pool: P
     const id = sendOffer(best, pool);
     navigate(`/deals#${id}`);
   };
+
+  // A shop not yet in this group can join it from here: the order form opens filled in so the
+  // new order lands in this group (same fruit, area, a date in the window, a purpose its grades suit).
+  const isOutsideShop = me.role === 'buyer' && !pool.demands.some((d) => d.buyerId === me.id);
+  const joinGroup = () => {
+    const price = best?.landed ?? best?.fullLanded;
+    const q = new URLSearchParams({ post: '1', fruit: pool.fruit, zone: pool.zone, by: pool.deliveryDate, purpose: pool.demands[0].purpose });
+    if (price != null) q.set('max', String(Math.ceil(price) + 2));
+    navigate(`/board?${q}`);
+  };
+  const joinButton = isOutsideShop && (
+    <button className="btn big" onClick={joinGroup}><UserPlus size={18} aria-hidden /> {t('join_group')}</button>
+  );
 
   return (
     <article id={pool.id} className={`pool ${viable ? 'is-viable' : 'is-waiting'} ${focus ? 'focus' : ''}`}>
@@ -212,6 +225,7 @@ export default function PoolCard({ pool, quotes, focus, defaultOpen }: { pool: P
             <strong>{reasonText(best)}</strong>
             {best.fullLanded != null && <> · {t('ps_if_all', { price: num(best.fullLanded) })}</>}
           </p>
+          {joinButton}
         </div>
       );
     }
@@ -223,6 +237,7 @@ export default function PoolCard({ pool, quotes, focus, defaultOpen }: { pool: P
           <div className="ps-figure"><span className="num">{num(best.price!)}</span> <span>{t('per_kg')}</span></div>
           <p className="ps-text">{t('ps_farmer', { kg: num(best.totalKg), n: shops, total: num(best.price! * best.totalKg) })}</p>
           <button className="btn big mango" onClick={offer}><Send size={18} aria-hidden /> {t('send_offer')}</button>
+          <p className="small muted ps-hint">{t('offer_uses', { price: num(best.price!), kg: num(best.totalKg) })}</p>
         </div>
       );
     }
@@ -246,11 +261,13 @@ export default function PoolCard({ pool, quotes, focus, defaultOpen }: { pool: P
         <div className="ps-figure">
           <span className="num">{num(best.landed!)}</span> <span>{t('per_kg')}</span>
           <small><Term tip="tip_landed">{t('cost_landed')}</Term></small>
+          <small className="ps-break">{t('ps_breakdown', { fruit: num(best.price!), ship: num(best.ship!), fee: num(best.fee) })}</small>
         </div>
         <p className="ps-text">
           {myIn.length > 0 && save != null && save > 0 && <strong className="save">{t('ps_save', { n: num(save) })} </strong>}
           {t(myIn.length > 0 ? 'ps_wait_you' : 'ps_wait', { farmer: farmerName })}
         </p>
+        {joinButton}
         {me.role === 'farmer' && <p className="small muted ps-hint">{t('offer_hint_other', { farmer: farmerName })}</p>}
       </div>
     );

@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FastForward, Megaphone, Plus, ShieldCheck, X } from 'lucide-react';
+import { FastForward, Megaphone, Plus, ShieldCheck, ShoppingBasket, X } from 'lucide-react';
 import { useApp } from '../store';
 import { pick } from '../i18n';
 import { FRUITS, PURPOSES, REGIONS, ZONES } from '../catalog';
@@ -20,6 +20,22 @@ type Num = number | '';
 const toNum = (v: string): Num => (v === '' ? '' : Number(v));
 const n = (v: Num) => (v === '' ? 0 : v);
 
+/** What a "Join this group" or "Order this fruit" button fills in on the order form. */
+type Prefill = { fruit: FruitId; zone?: ZoneId; by?: string; purpose?: Purpose; max?: number };
+
+function prefillFrom(q: URLSearchParams): Prefill | null {
+  const fruit = q.get('fruit');
+  if (!fruit || !(fruit in FRUITS)) return null;
+  const zone = q.get('zone'), by = q.get('by'), purpose = q.get('purpose'), max = Number(q.get('max'));
+  return {
+    fruit: fruit as FruitId,
+    zone: zone && zone in ZONES ? (zone as ZoneId) : undefined,
+    by: by && /^\d{4}-\d{2}-\d{2}$/.test(by) && by >= today() ? by : undefined,
+    purpose: purpose && purpose in PURPOSES ? (purpose as Purpose) : undefined,
+    max: max > 0 ? max : undefined,
+  };
+}
+
 export default function Board() {
   const { state, lang, t, num, me, userById } = useApp();
   const [fruit, setFruit] = useState<FruitId | 'all'>('all');
@@ -28,6 +44,11 @@ export default function Board() {
   const [form, setForm] = useState<'demand' | 'supply' | null>(
     params.get('post') ? (me.role === 'buyer' ? 'demand' : 'supply') : null,
   );
+  const [prefill, setPrefill] = useState(() => prefillFrom(params));
+  const orderThis = (fruit: FruitId) => {
+    setPrefill({ fruit });
+    setForm('demand');
+  };
 
   const match = (f: FruitId) => fruit === 'all' || f === fruit;
   const demands = state.demands.filter((d) => d.status !== 'done' && match(d.fruit)).sort((a, b) => a.neededBy.localeCompare(b.neededBy));
@@ -59,13 +80,13 @@ export default function Board() {
           ))}
         </div>
         {me.role === 'buyer' ? (
-          <button className="btn" onClick={() => setForm(form === 'demand' ? null : 'demand')}><Plus size={16} aria-hidden /> {t('post_demand')}</button>
+          <button className="btn" onClick={() => { setPrefill(null); setForm(form === 'demand' ? null : 'demand'); }}><Plus size={16} aria-hidden /> {t('post_demand')}</button>
         ) : (
           <button className="btn" onClick={() => setForm(form === 'supply' ? null : 'supply')}><Plus size={16} aria-hidden /> {t('post_supply')}</button>
         )}
       </div>
 
-      {form === 'demand' && me.role === 'buyer' && <DemandForm onDone={() => setForm(null)} />}
+      {form === 'demand' && me.role === 'buyer' && <DemandForm key={JSON.stringify(prefill)} prefill={prefill} onDone={() => setForm(null)} />}
       {form === 'supply' && me.role === 'farmer' && <SupplyForm onDone={() => setForm(null)} />}
 
       <div className="board">
@@ -115,6 +136,11 @@ export default function Board() {
                 <span>{fmtDate(s.availableFrom, lang)} – {fmtDate(s.availableTo, lang)}</span>
               </div>
               {s.farmerId === me.id && <ListingAddons supply={s} />}
+              {me.role === 'buyer' && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <button className="btn secondary" onClick={() => orderThis(s.fruit)}><ShoppingBasket size={16} aria-hidden /> {t('order_this')}</button>
+                </div>
+              )}
             </div>
           ))}
         </section>
@@ -123,13 +149,25 @@ export default function Board() {
   );
 }
 
-function DemandForm({ onDone }: { onDone: () => void }) {
+function DemandForm({ prefill, onDone }: { prefill: Prefill | null; onDone: () => void }) {
   const { lang, t, me, addDemand } = useApp();
   const navigate = useNavigate();
   const [f, setF] = useState({
-    fruit: 'mango' as FruitId, qtyKg: 30 as Num, purpose: 'juice' as Purpose, maxCost: 58 as Num, currentCost: '' as Num,
-    zone: (me.zone ?? 'ari') as ZoneId, neededBy: addDays(today(), 5),
+    fruit: prefill?.fruit ?? ('mango' as FruitId),
+    // A prefilled form leaves the kilos for the shop to enter: that is the one thing only they know.
+    qtyKg: (prefill ? '' : 30) as Num,
+    purpose: prefill?.purpose ?? ('juice' as Purpose),
+    maxCost: (prefill?.max ?? 58) as Num,
+    currentCost: '' as Num,
+    zone: prefill?.zone ?? ((me.zone ?? 'ari') as ZoneId),
+    neededBy: prefill?.by ?? addDays(today(), 5),
   });
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (!prefill) return;
+    formRef.current?.scrollIntoView({ block: 'start' });
+    formRef.current?.querySelector<HTMLInputElement>('#dq')?.focus({ preventScroll: true });
+  }, [prefill]);
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF({ ...f, [k]: v });
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -137,8 +175,9 @@ function DemandForm({ onDone }: { onDone: () => void }) {
     navigate('/me', { state: { flash: { kind: 'demand', id, userId: me.id } } });
   };
   return (
-    <form className="panel form" style={{ marginBottom: 20 }} onSubmit={submit}>
+    <form ref={formRef} className="panel form" style={{ marginBottom: 20, scrollMarginTop: 80 }} onSubmit={submit}>
       <h2 className="full">{t('post_demand')}</h2>
+      {prefill && <p className="full prefill-note">{t('prefill_note')}</p>}
       <div className="field">
         <label htmlFor="df">{t('f_fruit')}</label>
         <FruitPicker id="df" value={f.fruit} onChange={(x) => set('fruit', x)} />
@@ -169,11 +208,14 @@ function DemandForm({ onDone }: { onDone: () => void }) {
         <input id="dm" type="number" min={1} step="0.5" required value={f.maxCost} onChange={(e) => set('maxCost', toNum(e.target.value))} />
         <span className="hint">{t('f_maxcost_hint')}</span>
       </div>
-      <div className="field">
+      <details className="full more-fields">
+        <summary>{t('f_more')}</summary>
+        <div className="field">
         <label htmlFor="dc">{t('f_current')}</label>
         <input id="dc" type="number" min={0} step="0.5" value={f.currentCost} onChange={(e) => set('currentCost', toNum(e.target.value))} />
         <span className="hint">{t('f_current_hint')}</span>
-      </div>
+        </div>
+      </details>
       <div className="full row">
         <button className="btn" type="submit">{t('submit')}</button>
         <button className="btn secondary" type="button" onClick={onDone}>{t('cancel')}</button>

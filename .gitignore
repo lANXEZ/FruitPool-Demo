@@ -9,3 +9,7 @@ icon/
 
 # Google Forms setup script (run once in Apps Script, not part of the site)
 docs/feedback-form.gs
+
+# Feedback form responses (personal answers; keep them out of the public repo)
+docs/*.csv
+docs/*.csv.zip

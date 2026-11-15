@@ -263,6 +263,15 @@ details.others summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
 .ps-figure small { flex-basis: 100%; font-size: 0.85rem; color: var(--muted); }
 .ps-text { flex: 1 1 260px; font-size: 1.02rem; }
 .ps-hint { flex-basis: 100%; }
+.ps-figure small.ps-break { margin-top: -2px; }
+
+/* Order form opened from a group or listing; optional fields tucked away. */
+.prefill-note { background: var(--mango-soft); border-radius: var(--r-sm); padding: 8px 12px; font-size: 0.95rem; }
+details.more-fields > summary { cursor: pointer; font-weight: 600; font-size: 0.95rem; color: var(--primary); min-height: 44px; display: flex; align-items: center; gap: 8px; list-style: none; }
+details.more-fields > summary::-webkit-details-marker { display: none; }
+details.more-fields > summary::before { content: '+'; display: grid; place-items: center; width: 22px; height: 22px; border: 1.5px solid currentColor; border-radius: 50%; font-size: 1rem; line-height: 1; flex: none; }
+details.more-fields[open] > summary::before { content: '−'; }
+details.more-fields .field { max-width: 320px; margin-top: 4px; }
 .pool-toggle {
   display: flex; align-items: center; gap: 6px; width: 100%; min-height: 44px; padding: 10px 16px;
   background: none; border: 0; border-top: 1px solid var(--line); color: var(--primary); font-weight: 600; text-align: left; cursor: pointer;
