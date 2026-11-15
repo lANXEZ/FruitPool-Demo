@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, X } from 'lucide-react';
 import { useApp } from '../store';
 import { pick } from '../i18n';
@@ -12,7 +13,11 @@ import type { FruitId, Grade, Purpose, ZoneId } from '../types';
 export default function Board() {
   const { state, lang, t, num, me, userById } = useApp();
   const [fruit, setFruit] = useState<FruitId | 'all'>('all');
-  const [form, setForm] = useState<'demand' | 'supply' | null>(null);
+  // ?post=1 (from My page and the start page) opens the right form straight away.
+  const [params] = useSearchParams();
+  const [form, setForm] = useState<'demand' | 'supply' | null>(
+    params.get('post') ? (me.role === 'buyer' ? 'demand' : 'supply') : null,
+  );
 
   const match = (f: FruitId) => fruit === 'all' || f === fruit;
   const demands = state.demands.filter((d) => d.status !== 'done' && match(d.fruit)).sort((a, b) => a.neededBy.localeCompare(b.neededBy));
@@ -105,6 +110,7 @@ export default function Board() {
 
 function DemandForm({ onDone }: { onDone: () => void }) {
   const { lang, t, me, addDemand } = useApp();
+  const navigate = useNavigate();
   const [f, setF] = useState({
     fruit: 'mango' as FruitId, qtyKg: 30, purpose: 'juice' as Purpose, maxCost: 58, currentCost: '' as number | '',
     zone: (me.zone ?? 'ari') as ZoneId, neededBy: addDays(today(), 5),
@@ -112,8 +118,8 @@ function DemandForm({ onDone }: { onDone: () => void }) {
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF({ ...f, [k]: v });
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    addDemand({ ...f, currentCost: f.currentCost === '' ? undefined : f.currentCost });
-    onDone();
+    const id = addDemand({ ...f, currentCost: f.currentCost === '' ? undefined : f.currentCost });
+    navigate('/me', { state: { flash: { kind: 'demand', id, userId: me.id } } });
   };
   return (
     <form className="panel form" style={{ marginBottom: 20 }} onSubmit={submit}>
@@ -162,7 +168,8 @@ function DemandForm({ onDone }: { onDone: () => void }) {
 }
 
 function SupplyForm({ onDone }: { onDone: () => void }) {
-  const { lang, t, addSupply } = useApp();
+  const { lang, t, me, addSupply } = useApp();
+  const navigate = useNavigate();
   const [f, setF] = useState({
     fruit: 'mango' as FruitId, variety: '', grade: 'A' as Grade, qtyKg: 200,
     availableFrom: today(), availableTo: addDays(today(), 14),
@@ -175,8 +182,8 @@ function SupplyForm({ onDone }: { onDone: () => void }) {
     const clean = tiers.filter((x) => x.minKg > 0 && x.price > 0).sort((a, b) => a.minKg - b.minKg);
     if (clean.length === 0) return;
     const v = f.variety.trim() || pick(FRUITS[f.fruit], lang);
-    addSupply({ ...f, variety: { th: v, en: v }, tiers: clean });
-    onDone();
+    const id = addSupply({ ...f, variety: { th: v, en: v }, tiers: clean });
+    navigate('/me', { state: { flash: { kind: 'supply', id, userId: me.id } } });
   };
   return (
     <form className="panel form" style={{ marginBottom: 20 }} onSubmit={submit}>

@@ -7,7 +7,7 @@ import type { Key } from '../i18n';
 
 const STEPS = [1, 2, 3, 4, 5, 6, 7] as const;
 
-export default function Home() {
+export default function How() {
   const { state, t, num } = useApp();
   const pools = usePools();
   const open = state.demands.filter((d) => d.status === 'open').length;

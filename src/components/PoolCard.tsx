@@ -10,7 +10,7 @@ export function GradeTag({ g }: { g: string }) {
   return <span className="grade">{g}</span>;
 }
 
-export default function PoolCard({ pool, quotes }: { pool: Pool; quotes: Quote[] }) {
+export default function PoolCard({ pool, quotes, focus }: { pool: Pool; quotes: Quote[]; focus?: boolean }) {
   const { lang, t, num, me, userById, sendOffer } = useApp();
   const navigate = useNavigate();
   const best = quotes[0];
@@ -43,7 +43,7 @@ export default function PoolCard({ pool, quotes }: { pool: Pool; quotes: Quote[]
   };
 
   return (
-    <article className={`pool ${viable ? 'is-viable' : 'is-waiting'}`}>
+    <article id={pool.id} className={`pool ${viable ? 'is-viable' : 'is-waiting'} ${focus ? 'focus' : ''}`}>
       <header className="pool-head">
         <h2>{pick(FRUITS[pool.fruit], lang)}</h2>
         <span className="row small muted">
