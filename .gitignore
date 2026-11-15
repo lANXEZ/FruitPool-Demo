@@ -6,3 +6,6 @@ dist
 
 # source artwork; the site uses the resized copies in public/
 icon/
+
+# Google Forms setup script (run once in Apps Script, not part of the site)
+docs/feedback-form.gs
