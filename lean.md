@@ -4,6 +4,22 @@ What we have learned from real people, what we changed because of it, and what w
 Each round follows **Build → Measure → Learn**: change the smallest thing that tests an idea,
 watch what people do, then decide what to change next.
 
+## Lean techniques we used
+
+| Technique | What we did |
+|---|---|
+| **Minimum viable product (MVP)** | The demo itself: a clickable website with made-up data and no backend, enough to test whether people understand and can use FRUITPOOL before building the real system. |
+| **Build → Measure → Learn** | Three rounds so far (below). Each starts from what testers told us and ends with a change to the demo. |
+| **Validated learning** | Changes come from what testers did and said, not from our own guesses: the beta tester in round 1, the survey in round 2. |
+| **Leap-of-faith assumptions** | We wrote down the beliefs the business depends on (A1–A5) and track which ones are tested. |
+| **Small batches** | Each improvement shipped on its own small branch. Round 3 changed only four things, each tied to a survey finding, so the next round can show which change helped. |
+| **Actionable metrics** (not vanity metrics) | We measure specific things we can act on, such as "knew where to go for the next step", instead of page views or the number of sign-ups. |
+| **Innovation accounting** | Round 2 is our baseline; round 3 sets targets against it (for example 3.0 → 4.0 for older users). The next round checks them. |
+| **Pivot or persevere** | Planned: we set the decision rule before the mango pilot, so the result can't be argued afterwards. |
+| **Concierge MVP** (planned) | Doing the pooling by hand for real shops and one farmer before automating it. |
+| **Split test** (planned) | Offering grade verification to real farmers at two prices and counting who pays. |
+| **Go and see for yourself** (planned) | Watching real shop owners and farmers try the demo, instead of asking friends what they think. |
+
 ## Leap-of-faith assumptions
 
 The business only works if these are true. Most are **not tested yet**.
